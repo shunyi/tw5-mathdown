@@ -14,6 +14,7 @@ Wraps up markdown parser for use in TiddlyWiki5
 // Load main libraries
 var Markdown = require("$:/plugins/padawanphysicist/tw5-mathdown/markdown-it.js");
 var TeXZilla = require("$:/plugins/padawanphysicist/tw5-mathdown/TeXZilla.js");
+var hljs = require("$:/plugins/tiddlywiki/highlight/highlight.js"); // https://highlightjs.org/
 var md; // Store markdown parser instance
 
 /** Function count the occurrences of substring in a string;
@@ -151,7 +152,15 @@ var MarkdownParser = function(type,text,options) {
 	md = new Markdown();
 
   // Set Markdown options here
-	md.set({html: true});
+	md.set({html: true, highlight: function (str, lang) {
+		if (lang && hljs.getLanguage(lang)) {
+			try {
+				return hljs.highlight(lang, str).value;
+			} catch (__) {}
+		}
+
+		return ''; // use external default escaping
+	}});
 
 	// Parse additional rules before markdown (I hope this is just a
 	// workaround while learning how to insert rules properly on
