@@ -55,7 +55,7 @@ function preParse(text) {
 
 	if(!!txt) {
 		// Parse Internal tiddler links
-		var re = /(?:\[(.*?)\]\((.*?)\))/gm;
+		var re = /(?:\[(.*?)\]\((#.*?)\))/gm;
 		txt = txt.replace(re,function(match,text) {
 			var linkName = match.match(/(?:\((.*)\))/g);
 			linkName = linkName[0].substr(1,(linkName[0].length-2));
@@ -141,6 +141,62 @@ function preParse(text) {
 	return txt;
 }
 
+function transformNodes(nodes) {
+	var results = [];
+	var size = nodes.childNodes.length;
+	if (size > 0) {
+		for (var index=0; index<size; index++) {
+			results.push(transformNode(nodes.childNodes[index]));
+		}
+	} else {
+		results.push(transformNode(nodes.innerHTML));
+	}
+	return results;
+}
+
+function transformNode(node) {
+	if (typeof(node) === "object") {
+		var p = 0,
+			widget = {type: "element", tag: node.nodeName.toLowerCase()};
+		if (node.hasAttributes()) {
+			widget.attributes = {};
+			for (var i = 0, size = node.attributes.length; i < size; i++) {
+				widget.attributes[node.attributes[i].name] = {type: "string", value: node.attributes[i].value};
+			}
+		}
+		widget.children = transformNodes(node);
+		// Massage images into the image widget
+		if (widget.tag === "img") {
+			widget.type = "image";
+			if (widget.attributes.alt) {
+				widget.attributes.tooltip = widget.attributes.alt;
+				delete widget.attributes.alt;
+			}
+			if (widget.attributes.src) {
+				widget.attributes.source = widget.attributes.src;
+				delete widget.attributes.src;
+			}
+		}
+		// Convert internal links to proper wikilinks
+		if (widget.tag === "a" && widget.attributes.href.value[0] === "#") {
+			widget.type = "link";
+			widget.attributes.to = widget.attributes.href;
+			console.log(widget.attributes.href.value[0]);
+			console.log(widget.attributes.href.value);
+			if (typeof(widget.attributes.to.value) === "string") {
+				//Remove '#' before conversion to wikilink
+				widget.attributes.to.value = widget.attributes.to.value.substr(1);
+			}
+			//Children is fine
+			delete widget.tag;
+			delete widget.attributes.href;
+		}
+		return widget;
+	} else {
+		return {type: "text", text: node.data};
+	}
+}
+
 var MarkdownParser = function(type,text,options) {
   var preParsedText,htmlText;
   //var newMacrosTiddlerStr = options.wiki.getTiddlerText(CONFIG_MACRO_TIDDLER,DEFAULT_CMD);
@@ -171,7 +227,11 @@ var MarkdownParser = function(type,text,options) {
 	// Parse Markdown
 	htmlText = md.render(preParsedText);
 
-	this.tree = [{type: "raw", html: htmlText}];
+	//this.tree = [{type: "raw", html: htmlText}];
+	var el = document.createElement("div");
+	el.innerHTML = htmlText;
+	this.tree = transformNodes(el);
+	console.log(this.tree);
 };
 
 exports["text/x-mathdown"] = MarkdownParser;
