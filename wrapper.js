@@ -54,8 +54,9 @@ function preParse(text) {
 	//var ncmds = newMacros.length-1;
 
 	if(!!txt) {
+		/*
 		// Parse Internal tiddler links
-		var re = /(?:\[(.*?)\]\((#.*?)\))/gm;
+		var re = /(?:\[(.*?)\]\((.*?)\))/gm;
 		txt = txt.replace(re,function(match,text) {
 			var linkName = match.match(/(?:\((.*)\))/g);
 			linkName = linkName[0].substr(1,(linkName[0].length-2));
@@ -64,6 +65,7 @@ function preParse(text) {
 
 			return "<a href=\"" + linkName + "\">" + text + "</a>";
 		});
+		*/
 
     // Parse new TeX commands
 		//if (ncmds > 0) {
@@ -144,18 +146,16 @@ function preParse(text) {
 function transformNodes(nodes) {
 	var results = [];
 	var size = nodes.childNodes.length;
-	if (size > 0) {
-		for (var index=0; index<size; index++) {
-			results.push(transformNode(nodes.childNodes[index]));
-		}
-	} else {
-		results.push(transformNode(nodes.innerHTML));
+
+	for (var index=0; index<size; index++) {
+		results.push(transformNode(nodes.childNodes[index]));
 	}
+	
 	return results;
 }
 
 function transformNode(node) {
-	if (typeof(node) === "object") {
+	if (node.nodeType === Node.ELEMENT_NODE) {
 		var p = 0,
 			widget = {type: "element", tag: node.nodeName.toLowerCase()};
 		if (node.hasAttributes()) {
