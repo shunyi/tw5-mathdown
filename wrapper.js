@@ -231,7 +231,6 @@ var MarkdownParser = function(type,text,options) {
 	var el = document.createElement("div");
 	el.innerHTML = htmlText;
 	this.tree = transformNodes(el);
-	console.log(this.tree);
 };
 
 exports["text/x-mathdown"] = MarkdownParser;
