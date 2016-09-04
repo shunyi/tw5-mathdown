@@ -54,9 +54,8 @@ function preParse(text) {
 	//var ncmds = newMacros.length-1;
 
 	if(!!txt) {
-		/*
 		// Parse Internal tiddler links
-		var re = /(?:\[(.*?)\]\((.*?)\))/gm;
+		var re = /(?:\[(.*?)\]\((#.*?)\))/gm;
 		txt = txt.replace(re,function(match,text) {
 			var linkName = match.match(/(?:\((.*)\))/g);
 			linkName = linkName[0].substr(1,(linkName[0].length-2));
@@ -65,7 +64,6 @@ function preParse(text) {
 
 			return "<a href=\"" + linkName + "\">" + text + "</a>";
 		});
-		*/
 
     // Parse new TeX commands
 		//if (ncmds > 0) {
@@ -181,8 +179,6 @@ function transformNode(node) {
 		if (widget.tag === "a" && widget.attributes.href.value[0] === "#") {
 			widget.type = "link";
 			widget.attributes.to = widget.attributes.href;
-			console.log(widget.attributes.href.value[0]);
-			console.log(widget.attributes.href.value);
 			if (typeof(widget.attributes.to.value) === "string") {
 				//Remove '#' before conversion to wikilink
 				widget.attributes.to.value = widget.attributes.to.value.substr(1);
